@@ -1,0 +1,317 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>Test your ES6!!!</title>
+        <style>
+            p {
+                white-space: pre;
+            }
+            code {
+                border: 1px solid #CCC;
+                white-space: pre;
+                display: inline-block;
+                padding: 0 1em 1em 1em;
+            }
+            test {
+                display: none;
+            }
+
+            .test-instance {
+                display: inline-block;
+                vertical-align: top;
+                margin: 10px;
+            }
+            .success {
+                color: green;
+            }
+            .error {
+                color: pink;
+            }
+        </style>
+    </head>
+    <body>
+
+        <script type="text/javascript">
+            // Plain old Javascript.
+
+            function isType(arg, typeToCheck) {
+                return typeof arg === typeToCheck;
+            }
+
+            function argToString(arg) {
+                if (isType(arg, 'string') || isType(arg, 'number') || isType(arg, 'boolean')) {
+                    return arg;
+                } else {
+                    return JSON.stringify(arg);
+                }
+            }
+
+            function stringifyArgs(fArguments) {
+                var args = Array.prototype.slice.apply(fArguments);
+                var res = [];
+                var arg;
+
+                for(var i = 0; i < args.length; i++) {
+                    res.push(argToString(args[i]));
+                }
+
+                return res;
+            }
+
+            var htmlIntance = [];
+
+            function pushHtml(html) {
+                htmlIntance.push(html);
+            }
+
+            function flushHtml(html) {
+                pushHtml(html);
+                document.write(htmlIntance.join(''));
+                htmlIntance = [];
+            }
+
+            function success() {
+                var msg = stringifyArgs(arguments);
+                pushHtml('<p class="success">' + msg.join(' ') + '</p>');
+            }
+
+            function error() {
+                var msg = stringifyArgs(arguments);
+                pushHtml('<p class="error">' + msg.join(' ') + '</p>');
+            }
+
+            function write() {
+                var msg = stringifyArgs(arguments);
+                pushHtml('<p>' + msg.join(' ') + '</p>');
+            }
+
+            function writeVars() {
+                var args = stringifyArgs(arguments);
+                var argName;
+                var argValue;
+                var msg = [];
+                var msgStr;
+                for(var i = 0; i < args.length; i += 2) {
+                    argName = args[i];
+                    argValue = args[i + 1];
+                    msgStr = argName + ' = ' + argValue;
+                    msgStr += ((i + 2) < args.length) ? ", " : "";
+                    msg.push(msgStr);
+                }
+                pushHtml('<p>' + msg.join(' ') + '</p>');
+            }
+
+            function run(description, code) {
+                pushHtml('<div class="test-instance">')
+                pushHtml('<h3>' + description + '</h3>');
+
+                // Join array to string.
+                if (isType(code, 'object')) {
+                    code = code.join('\n');
+                }
+
+                code = code.replace(/&gt;/g, '>').replace(/&lt;/g, '<');
+
+                pushHtml('<code>' + code + '</code>');
+
+                var codeToEval = '(function () { ' + code + ' })()';
+
+                try {
+                    eval(codeToEval);
+                    success('It works!');
+                } catch (e) {
+                    error('Not supported! Error: ' + e);
+                }
+
+                flushHtml('</div>');
+            }
+
+        </script>
+
+
+<test title="Default parameters">
+function defParams(a, b = "default value") {
+    writeVars("a", a, "b", b);
+}
+
+defParams("regular value", "custom value");
+defParams("regular value");
+</test>
+
+
+<test title="Template literals">
+write(`1 + 1 = ${1 + 1}`);
+</test>
+
+
+<test title="Const, let">
+const thisIsConst = 1;
+let thisIsLet = 2;
+
+writeVars("thisIsConst", thisIsConst, "thisIsLet", thisIsLet);
+</test>
+
+
+<test title="Multiline strings">
+var regularString = "a\
+b\
+c";
+
+var templateString = `a\
+b\
+c`;
+
+writeVars("regularString", regularString);
+writeVars("templateString", templateString);
+</test>
+
+
+<test title="Destructuring Assignment">
+var obj = { a: 1, b: 2, c: 3, d: { e: 4 } };
+var { a } = obj;
+var { b, c } = obj;
+var { d: { e } } = obj;
+writeVars("a", a, "b", b, "c", c, "e", e);
+
+var arr = [ 1, 2, 3, 4 ];
+var [ x, , y ] = arr;
+writeVars("x", x, "y", y);
+
+var a = 1;
+var b = 2;
+var [c, d] = [a, b];
+[b, a] = [a, b];
+writeVars("a", a, "b", b, "c", c, "d", d);
+
+function fun({a, b}) {
+    writeVars("a", a, "b", b);
+}
+var obj = {
+    a: 1,
+    b: 2
+};
+fun(obj);
+</test>
+
+
+<test title="Enhanced Object Literals">
+var someVar = 1;
+var obj = {
+    regular: 2,
+    someVar,
+    someMethod() {
+        writeVars("someVar", this.someVar, "aaa", this.aaa);
+    },
+    ['a' + 'a' + 'a']: 3
+}
+obj.someMethod();
+</test>
+
+
+<test title="Arrow functions">
+var arrowFunction1 = (param) =&gt; {
+    writeVars("param", param);
+};
+var arrowFunction2 = (param) =&gt; arrowFunction1(param);
+arrowFunction2(123);
+</test>
+
+
+<test title="Promise">
+var promise = new Promise(function (resolve, reject) {
+    resolve('hooray!');
+});
+promise.then(function (res) {
+    // Promise will be resolved asynchronously,
+    // so it's resolve moment can't be captured by test runner.
+    console.log('Promise works!');
+});
+</test>
+
+
+<test title="Classes">
+class SomeClass {
+    constructor(param) {
+        this.value = param;
+    }
+
+    getValue() {
+        return this.value;
+    }
+}
+
+class AnotherClass extends SomeClass {
+    constructor(param) {
+        super(param);
+    }
+}
+
+var instance = new AnotherClass('initial value');
+writeVars("value", instance.getValue());
+</test>
+
+
+<test title="Generators">
+function* gen(a) {
+    let i = 1;
+    while (i &lt; a) {
+        yield i++;
+    }
+    return i;
+}
+
+const iter = gen(5);
+let iterObj = null;
+
+while (!iterObj || !iterObj.done) {
+    iterObj = iter.next();
+    writeVars("i", iterObj.value);
+}
+</test>
+
+
+<test title="For .. of">
+var arr = [1, 2, 3, 4];
+for(var i of arr) {
+    writeVars("i", i);
+}
+</test>
+
+
+<test title="Rest parameters">
+function fun(a, ...b) {
+    writeVars("a", a, "b", b);
+}
+fun(1, 2, 3, 4);
+</test>
+
+
+<test title="Spread arrays">
+var arr1 = [2, 3, 4];
+var arr2 = [1, ...arr1];
+writeVars("arr2", arr2);
+
+function fun(a, b, c, d) {
+    writeVars("a", a, "b", b, "c", c, "d", d);
+}
+fun(...arr2);
+</test>
+
+
+        <script type="text/javascript">
+            function runTests() {
+                var tests = document.getElementsByTagName('test');
+                var test = null;
+                for(var i = 0; i < tests.length; i ++) {
+                    test = tests[i];
+                    run(test.getAttribute('title'), test.innerHTML);
+                }
+            }
+
+            flushHtml('<h1>Your browser ES6 compability!</h1>');
+
+            runTests();
+        </script>
+
+    </body>
+</html>
