@@ -1,0 +1,15 @@
+{
+  "short_name": "JPoint'18 game!",
+  "name": "JPoint'18 game!",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "./jpoint-18-game.html",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
